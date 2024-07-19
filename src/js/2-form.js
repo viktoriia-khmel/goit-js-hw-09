@@ -9,16 +9,26 @@ const formData = {
   message: '',
 };
 
-populateForm();
-
 form.addEventListener('submit', handleFormSubmit);
 form.addEventListener('input', handleFormInput);
 
+const saveToLocalStorage = () => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(formData)) || '';
+};
+
+const loadFromLocalStorage = () => {
+  const savedData = localStorage.getItem(STORAGE_KEY);
+  if (savedData) {
+    const parsedData = JSON.parse(savedData);
+    formData.email = parsedData.email || '';
+    formData.message = parsedData.message || '';
+    form.elements.email.value = formData.email;
+    form.elements.message.value = formData.message;
+  }
+};
+
 function handleFormSubmit(event) {
   event.preventDefault();
-
-  form.elements.email.value = formData.email;
-  form.elements.message.value = formData.message;
 
   if (!formData.email || !formData.message) {
     alert('Fill please all fields');
@@ -28,43 +38,13 @@ function handleFormSubmit(event) {
   localStorage.removeItem(STORAGE_KEY);
 
   event.currentTarget.reset();
+  formData.email = '';
+  formData.message = '';
 }
 
 function handleFormInput(event) {
-  const value = event.target.value;
-  const key = event.target.name;
-
-  let savedData = {};
-
-  try {
-    savedData = JSON.parse(localStorage.getItem(STORAGE_KEY));
-  } catch (err) {
-    console.log(err);
-    return;
-  }
-
-  if (savedData) {
-    formData[key] = value;
-  } else {
-    formData = {
-      [key]: value,
-    };
-  }
-
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-  } catch (err) {
-    console.log(err);
-    return;
-  }
+  formData[event.target.name] = event.target.value.trim();
+  saveToLocalStorage();
 }
 
-function populateForm() {
-  if (!formData) {
-    return;
-  }
-
-  for (const key in formData) {
-    form.elements[key].value = formData[key];
-  }
-}
+document.addEventListener('DOMContentLoaded', loadFromLocalStorage);
